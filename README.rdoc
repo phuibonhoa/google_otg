@@ -15,7 +15,8 @@ You must be able to generate arrays of objects that respond to "count" and "crea
 
 == Example Usage
 In your controller:
-@hits = Hits.find_by_sql(["
+
+ @hits_last_week = Hits.find_by_sql(["
     SELECT 
         DAYOFYEAR(hits.created_at) as d, 
         DATE(hits.created_at) as created_at, 
@@ -27,9 +28,9 @@ In your controller:
 
 In your view:
 
-  <%= over_time_graph(@hits) %>
-  
-  <%= over_time_graph(@hits, :label => "Hits", :range => 1440, :x_label_format => "%A, %B %d", :src => "/google/OverTimeGraph.swf") %>
+  <%= over_time_graph(@hits_last_week) %>
+  or
+  <%= over_time_graph(@hits_last_week, :label => "Hits", :range => 1440, :x_label_format => "%A, %B %d", :src => "/google/OverTimeGraph.swf") %>
 
 == +over_time_graph+
 
