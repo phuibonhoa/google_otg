@@ -26,7 +26,6 @@ Gem::Specification.new do |s|
      "google_otg.gemspec",
      "lib/google_otg.rb",
      "rails/init.rb",
-     "rails/init.rb",
      "test/google_otg_test.rb",
      "test/test_helper.rb"
   ]
