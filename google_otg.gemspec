@@ -23,7 +23,9 @@ Gem::Specification.new do |s|
      "README.rdoc",
      "Rakefile",
      "VERSION",
+     "google_otg.gemspec",
      "lib/google_otg.rb",
+     "rails/init.rb",
      "rails/init.rb",
      "test/google_otg_test.rb",
      "test/test_helper.rb"
