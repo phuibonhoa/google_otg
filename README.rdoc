@@ -26,8 +26,10 @@ In your controller:
     ORDER BY created_at"])
 
 In your view:
-<%= over_time_graph(@hits) %>
-<%= over_time_graph(@hits, :label => "Hits", :range => 1440, :x_label_format => "%A, %B %d", :src => "/google/OverTimeGraph.swf") %>
+
+  <%= over_time_graph(@hits) %>
+  
+  <%= over_time_graph(@hits, :label => "Hits", :range => 1440, :x_label_format => "%A, %B %d", :src => "/google/OverTimeGraph.swf") %>
 
 == +over_time_graph+
 
