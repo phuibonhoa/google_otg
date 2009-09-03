@@ -5,12 +5,13 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "google_otg"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.summary = %Q{Google's amazing over-time graph, in your rails app}
+    gem.description = %Q{Include Google's Over Time Graph in your app}
     gem.email = "eric@ericsilverberg.com"
     gem.homepage = "http://github.com/esilverberg/google_otg"
     gem.authors = ["esilverberg"]
     gem.add_development_dependency "thoughtbot-shoulda"
+    gem.files.include %w(rails/init.rb)
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
 rescue LoadError

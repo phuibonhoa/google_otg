@@ -1,6 +1,42 @@
 = google_otg
 
-Description goes here.
+Author::    Eric Silverberg (http://www.ericsilverberg.com)
+Copyright:: Copyright (c) 2009 Eric Silverberg
+License::   MIT (Go Beavers!)
+Git::       http://github.com/esilverberg/google_otg/tree/master
+
+This plugin adds helpers to include Google's pretty over time line graph in your rails application. You will
+recognize this line graph from Google Analytics. 
+
+Many features are missing, including support for multiple lines and colors. Feel free to add.
+
+== Requirements
+You must be able to generate arrays of objects that respond to "count" and "created_at". The X-axis is presumed to be dates. You can control time step of the x-axis. 
+
+== Example Usage
+In your controller:
+@hits = Hits.find_by_sql(["
+    SELECT 
+        DAYOFYEAR(hits.created_at) as d, 
+        DATE(hits.created_at) as created_at, 
+        count(*) as count
+    FROM hits
+    WHERE hits.created_at > UTC_TIMESTAMP() - INTERVAL 7 DAY
+    GROUP BY d
+    ORDER BY created_at"])
+
+In your view:
+<%= over_time_graph(@hits) %>
+<%= over_time_graph(@hits, :label => "Hits", :range => 1440, :x_label_format => "%A, %B %d", :src => "/google/OverTimeGraph.swf") %>
+
+== +over_time_graph+
+
+Some of the options available:
+
+<tt>:label</tt>::                The label of quantity being measured
+<tt>:range</tt>::                The time step, in minutes
+<tt>:x_label_format</tt>::       The time format for the x label
+<tt>:src</tt>::                  An optional local source to serve this widget (otherwise will serve from Google)
 
 == Note on Patches/Pull Requests
  
