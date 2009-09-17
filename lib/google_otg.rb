@@ -19,7 +19,98 @@ pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-sh
 src="#{src}"/>
 eos
 
+        return html
+
     end
+
+    def google_pie(hits, label_fn, args = {})
+        height = args.has_key?(:height) ? args[:height] : 125
+        width = args.has_key?(:width) ? args[:width] : 125
+        pie_values = extract_pct_values(hits, label_fn, args)
+        vars = pie_to_flashvars(pie_values, args)
+        src = args.has_key?(:src) ? args[:src] : "http://www.google.com/analytics/static/flash/pie.swf"
+        
+        html = <<-eos
+<embed 
+    width="#{width}" 
+    height="#{height}" 
+    salign="tl" 
+    scale="noScale" 
+    quality="high" 
+    bgcolor="#FFFFFF" 
+    flashvars="input=#{vars}&amp;locale=en-US" 
+    pluginspage="http://www.macromedia.com/go/getflashplayer" 
+    type="application/x-shockwave-flash" 
+    src="#{src}"/>
+eos
+        return html
+        
+    end
+    
+    def pie_to_flashvars(args = {})
+
+        labels = args[:labels]
+        raw_values = args[:raw_values]
+        percent_values = args[:percent_values]
+            
+        options = {
+            :Pie => {
+                :Id => "Pie",
+                :Compare => false,
+                :HasOtherSlice => false,
+                :RawValues => raw_values,
+                :Format => "DASHBOARD",
+                :PercentValues => percent_values
+            }
+        }
+
+        return URI::encode(options.to_json)
+
+    end
+    protected :pie_to_flashvars
+    
+    def extract_pct_values(hits, label_fn, args = {})
+
+        limit = args.has_key?(:limit) ? args[:limit] : 0.0
+
+        total = 0.0
+        other = 0.0
+        percent_values = []
+        raw_values = []
+        labels = []
+        values = []
+        hits.each{|hit|  
+            total += hit.count.to_f
+        }
+        hits.each{|hit|
+            ct = hit.count.to_f
+            pct = (ct / total)
+            
+            if pct > limit 
+                percent_values.push([pct, sprintf("%.2f%%", pct * 100)])
+                raw_values.push([ct, ct])
+                
+                label = label_fn.call(hit)
+                meta = args.has_key?(:meta) ? args[:meta].call(hit) : nil
+                
+                labels.push(label)
+                values.push({:label => label, :meta => meta, :percent_value => [pct, sprintf("%.2f%%", pct * 100)], :raw_value => ct})
+            else
+                other += ct
+            end
+        }
+        if other > 0.0
+            pct = other / total
+            percent_values.push([pct, sprintf("%.2f%%", pct * 100)])
+            raw_values.push([other, other])
+            labels.push("Other")
+            values.push({:label => "Other", :percent_value => [pct, sprintf("%.2f%%", pct * 100)], :raw_value => other})
+        end
+
+        return {:labels => labels, :raw_values => raw_values, :percent_values => percent_values, :values => values}
+
+    end
+    protected :extract_pct_values
     
     def flto10(val)
         return ((val / 10) * 10).to_i
