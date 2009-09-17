@@ -170,6 +170,7 @@ eos
             end
         end
 
+        max_y = args.has_key?(:max_y) ? (args[:max_y] > max_y ? args[:max_y] : max_y) : max_y
 
         mid_y = self.flto10(max_y / 2)
         top_y = self.flto10(max_y)
