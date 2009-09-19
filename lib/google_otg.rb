@@ -145,7 +145,7 @@ eos
         now_floored = Time.at((Time.now.to_i/(60*range))*(60*range)).gmtime
         current = hits.length > 0 ? time_fn.call(hits[0]) : now_floored
 
-        while (current <= now_floored && range > 0) do
+        while (current <= now_floored + 1.day && range > 0) do
             if hits_dict[current]
                 count = hits_dict[current].count.to_i
                 max_y = count if count > max_y
