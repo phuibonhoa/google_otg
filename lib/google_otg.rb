@@ -127,13 +127,13 @@ eos
             end
         }
       
+        tz = args.has_key?(:time_zone) ? args[:time_zone] : ActiveSupport::TimeZone['UTC']
         label = args.has_key?(:label) ? args[:label] : "Value"
         time_fn = args.has_key?(:time_fn) ? args[:time_fn] : lambda {|h| h.created_at }
         range = args.has_key?(:range) ? args[:range] : DEFAULT_RANGE
         x_label_format = args.has_key?(:x_label_format) ? args[:x_label_format] : "%A %I:%M%p"
       
         max_y = 0
-        tz = args.has_key?(:time_zone) ? args[:time_zone] : ActiveSupport::TimeZone['UTC']
         hits_dict = {}
         hits.each { |h|
             hits_dict[time_fn.call(h)] = h
@@ -142,7 +142,7 @@ eos
         total = 0
         
         points = []
-        now_floored = Time.at((Time.now.to_i/(60*range))*(60*range)).gmtime
+        now_floored = Time.at((Time.now.to_i/(60*range))*(60*range))
         current = hits.length > 0 ? time_fn.call(hits[0]) : now_floored
 
         while (current <= now_floored + 1.day && range > 0) do
@@ -150,7 +150,7 @@ eos
                 count = hits_dict[current].count.to_i
                 max_y = count if count > max_y
 
-                date = tz.utc_to_local(time_fn.call(hits_dict[current]))
+                date = time_fn.call(hits_dict[current])
                 date_key = date.to_i
                 date_value = date.strftime(x_label_format)
                 
@@ -158,7 +158,7 @@ eos
                 total += count
             else
             
-                date = tz.utc_to_local(current)
+                date = current
                 date_key = date.to_i
                 date_value = date.strftime(x_label_format)
                 
