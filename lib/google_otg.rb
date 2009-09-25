@@ -128,6 +128,7 @@ eos
         }
       
         tz = args.has_key?(:time_zone) ? args[:time_zone] : ActiveSupport::TimeZone['UTC']
+        Time.zone = tz
         label = args.has_key?(:label) ? args[:label] : "Value"
         time_fn = args.has_key?(:time_fn) ? args[:time_fn] : lambda {|h| h.created_at }
         range = args.has_key?(:range) ? args[:range] : DEFAULT_RANGE
@@ -145,7 +146,7 @@ eos
         now_floored = Time.at((Time.now.to_i/(60*range))*(60*range))
         current = hits.length > 0 ? time_fn.call(hits[0]) : now_floored
 
-        while (current <= now_floored + 1.day && range > 0) do
+        while (current <= now_floored && range > 0) do
             if hits_dict[current]
                 count = hits_dict[current].count.to_i
                 max_y = count if count > max_y
