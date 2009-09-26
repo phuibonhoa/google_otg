@@ -196,7 +196,6 @@ eos
         return {:x_labels => x_labels, :y_labels => y_labels, :label => label, :points => points, :total => total}    
         
     end
-    protected :hits_to_range
     
     def range_to_flashvars(args = {})
         x_labels = args[:x_labels]
