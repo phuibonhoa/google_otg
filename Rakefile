@@ -11,6 +11,7 @@ begin
     gem.homepage = "http://github.com/esilverberg/google_otg"
     gem.authors = ["esilverberg"]
     gem.add_development_dependency "thoughtbot-shoulda"
+    gem.add_dependency "mattetti-googlecharts"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
 rescue LoadError

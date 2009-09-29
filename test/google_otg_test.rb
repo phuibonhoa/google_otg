@@ -30,14 +30,23 @@ class GoogleOtgTest < ActiveSupport::TestCase
                 assert(ActionView::Base.instance_methods.include?("over_time_graph"))
             end
         end
+        
+        context "google chart" do 
+            should "when passed in simple data" do 
+                hits = Hit.find(:all, :order => "created_at" )
+                output = google_line_graph(hits)
+                md = output.match(/^http\:\/\/chart\.apis\.google\.com\/chart\?/)
+                assert(md != nil)
+            end
+        end
     end    
     
 end
 
 class ApplicationHelperTest < ActionView::TestCase  
   def test_helper_method
-    hits = Hit.find(:all, :order => "created_at" )
-    tag = over_time_graph(hits)  
-    assert_tag_in(tag, :embed)#, :attributes => {:href => edit_account_path})  
+    #hits = Hit.find(:all, :order => "created_at" )
+    #tag = over_time_graph(hits)  
+    #assert_tag_in(tag, :embed)#, :attributes => {:href => edit_account_path})  
   end  
 end  

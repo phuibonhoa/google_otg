@@ -1,14 +1,69 @@
 require 'uri'
-
+require 'gchart_mod'
 module GoogleOtg
 
     DEFAULT_RANGE = 30 # 30 min
 
+    def google_line_graph(hits, args = {})
+    
+        raise ArgumentError, "Invalid hits" unless hits && hits.length > 0
+        
+        size = args.has_key?(:size) ? args[:size] : '800x200'
+        title = args.has_key?(:title) ? args[:title] : "Graph"
+        title_color = args.has_key?(:title_color) ? args[:title_color] : '000000'
+        title_size = args.has_key?(:title_size) ? args[:title_size] : '20'
+        grid_lines = args.has_key?(:grid_lines) ? args[:grid_lines] : [25,50]
+        legend = args.has_key?(:legend) ? args[:legend] : nil
+
+        x_labels = []
+        y_labels = [0]
+        data = []
+                
+        if hits[0].is_a?(Array)
+            shape_markers = [['o','0000ff',0,'-1.0',6],['o','FF6600',1,'-1.0',6]]
+            line_colors = ['6699CC','FF9933']
+            
+            hits.map{|h|
+                converted = hits_to_gchart_range(h, args)            
+                data.push(converted[:points])
+                x_labels = converted[:x_labels]
+                y_labels = converted[:y_labels] if converted[:y_labels].max > y_labels.max
+            }
+            
+        else
+            shape_markers = ['o','0000ff',0,'-1.0',6]
+            line_colors = '6699CC'            
+
+            converted = hits_to_gchart_range(hits, args)            
+            data.push(converted[:points])
+            x_labels = converted[:x_labels]
+            y_labels = converted[:y_labels]
+
+        end
+        
+        axis_with_labels = 'x,y'
+        axis_labels = [x_labels,y_labels]
+        
+        return Gchart.line(
+            :size => size, 
+            :title => title,
+            :title_color => title_color,
+            :title_size => title_size,
+            :grid_lines => grid_lines,
+            :shape_markers => shape_markers,
+            :data => data,
+            :axis_with_labels => axis_with_labels,
+            :legend => legend,
+            :axis_labels => axis_labels,
+            :line_colors => line_colors)
+                
+    end
+    
     def over_time_graph(hits, args = {})
         height = args.has_key?(:height) ? args[:height] : 125
         src = args.has_key?(:src) ? args[:src] : "http://www.google.com/analytics/static/flash/OverTimeGraph.swf"
         
-        range = hits_to_range(hits, args)
+        range = hits_to_otg_range(hits, args)
         vars = range_to_flashvars(range)
         
         html = <<-eos
@@ -117,7 +172,27 @@ eos
     end
     protected :flto10
     
-    def hits_to_range(hits, args = {})
+    def hits_to_otg_range(hits, args = {})
+        return hits_to_range(hits, lambda {|count, date_key, date_value| 
+            {:Value => [count, count], :Label => [date_key, date_value]}
+        }, lambda{|mid, top| 
+            [[mid,mid],[top,top]]
+        }, lambda{|hit, hit_date_key, hit_date_value|
+            [hit_date_key, hit_date_value]
+        },args)
+    end
+    
+    def hits_to_gchart_range(hits, args = {})
+        return hits_to_range(hits, lambda {|count, date_key, date_value|
+            count
+        }, lambda {|mid, top|
+            [0,top/2,top]
+        },lambda{|hit, hit_date_key, hit_date_value|
+            hit_date_value
+        }, args)
+    end
+    
+    def hits_to_range(hits, points_fn, y_label_fn, x_label_fn, args = {})
 
         return nil unless hits
         
@@ -143,10 +218,16 @@ eos
         total = 0
         
         points = []
-        now_floored = Time.at((Time.now.to_i/(60*range))*(60*range))
+        point_dates = []
+
+        now_days = Time.now # use this get the right year, month and day
+        now_minutes = Time.at((Time.now.to_i/(60*range))*(60*range)).gmtime
+        now_floored = Time.local(now_days.year, now_days.month, now_days.day, 
+            now_minutes.hour, now_minutes.min, now_minutes.sec)
+
         current = hits.length > 0 ? time_fn.call(hits[0]) : now_floored
 
-        while (current <= now_floored && range > 0) do
+        while (current < now_floored + range.minutes && range > 0) do
             if hits_dict[current]
                 count = hits_dict[current].count.to_i
                 max_y = count if count > max_y
@@ -155,7 +236,7 @@ eos
                 date_key = date.to_i
                 date_value = date.strftime(x_label_format)
                 
-                points.push({:Value => [count, count], :Label => [date_key, date_value]})
+                points.push(points_fn.call(count, date_key, date_value))
                 total += count
             else
             
@@ -163,39 +244,44 @@ eos
                 date_key = date.to_i
                 date_value = date.strftime(x_label_format)
                 
-                points.push({:Value => [0, 0], :Label => [date_key, date_value]})
+                points.push(points_fn.call(0, date_key, date_value))
             end
+            # Save the date for the x labels later
+            point_dates.push({:key => date_key, :value => date_value})
             current = current + range.minutes
-            if points.length > 100 
-                break
-            end
+            break if points.length > 100 
         end
 
+        ## Setup Y axis labels ##
         max_y = args.has_key?(:max_y) ? (args[:max_y] > max_y ? args[:max_y] : max_y) : max_y
 
-        mid_y = self.flto10(max_y / 2)
-        top_y = self.flto10(max_y)
-        if (top_y == 0)
-            mid_y = max_y / 2
-            top_y = max_y
-        end
-        
-        y_labels = [ [mid_y, mid_y], [top_y, top_y] ]
+        top_y = self.flto10(max_y) + 10
+        mid_y = self.flto10(top_y / 2)        
+        y_labels = y_label_fn.call(mid_y, top_y)
+        ## end y axis labels ##
 
+        ## Setup X axis labels
         x_labels = []
+        max_x_label_count = args.has_key?(:max_x_label_count) ? args[:max_x_label_count] : points.length
 
         if points.length > 0    
-            for i in 0..3
-                hit = points[i * (points.length / 4)]
-                
-                date_key = hit[:Label][0]
-                date_value = hit[:Label][1]
-                x_labels.push([date_key, date_value])
+            step = points.length / max_x_label_count
+            idx = 0
+            
+            while idx < points.length
+                point = points[idx]
+                date = point_dates[idx]
+                x_labels.push(x_label_fn.call(point, date[:key], date[:value]))
+                idx += step
             end
         end
+        
+        ## End x axis labels ##
+        
         return {:x_labels => x_labels, :y_labels => y_labels, :label => label, :points => points, :total => total}    
         
     end
+    protected :hits_to_range
     
     def range_to_flashvars(args = {})
         x_labels = args[:x_labels]
