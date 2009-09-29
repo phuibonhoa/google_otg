@@ -41,6 +41,26 @@ Some of the options available:
 <tt>:x_label_format</tt>::       The time format for the x label
 <tt>:src</tt>::                  An optional local source to serve this widget (otherwise will serve from Google)
 
+== +google_line_graph+
+
+Example:
+
+Some of the options available:
+
+    google_line_graph(
+        [@impressions, @conversions],
+        :x_label_format => "%a, %b %d", 
+        :time_zone => @time_zone, 
+        :range => 1440,
+        :title => @company_name,
+        :legend => ['Impressions','Conversions'])
+
+<tt>:title</tt>::               The title of this graph
+<tt>:legend</tt>::              The graph legend
+<tt>:title_color</tt>::         The title color
+<tt>:title_size</tt>::          Title font size
+<tt>:grid_lines</tt>::          Grid lines on the graph
+
 == Copyright
 
 Copyright (c) 2009 esilverberg. See LICENSE for details.
