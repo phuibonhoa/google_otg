@@ -1,5 +1,7 @@
-require 'uri'
+$:.unshift(File.dirname(__FILE__))
 require 'gchart_mod'
+require 'uri'
+
 module GoogleOtg
 
     DEFAULT_RANGE = 30 # 30 min
