@@ -28,7 +28,7 @@ module GoogleOtg
             hits.map{|h|
                 converted = hits_to_gchart_range(h, args)            
                 data.push(converted[:points])
-                x_labels = converted[:x_labels]
+                x_labels = converted[:x_labels] if converted[:x_labels].length > x_labels.length
                 y_labels = converted[:y_labels] if converted[:y_labels].max > y_labels.max
             }
             
