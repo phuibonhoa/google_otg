@@ -205,9 +205,10 @@ eos
         }
       
         tz = args.has_key?(:time_zone) ? args[:time_zone] : ActiveSupport::TimeZone['UTC']
-        Time.zone = tz
         label = args.has_key?(:label) ? args[:label] : "Value"
-        time_fn = args.has_key?(:time_fn) ? args[:time_fn] : lambda {|h| h.created_at }
+        time_fn = args.has_key?(:time_fn) ? args[:time_fn] : lambda {|h| 
+            return tz.local(h.created_at.year, h.created_at.month, h.created_at.day, h.created_at.hour, h.created_at.min, h.created_at.sec) # create zoned time
+        }
         range = args.has_key?(:range) ? args[:range] : DEFAULT_RANGE
         x_label_format = args.has_key?(:x_label_format) ? args[:x_label_format] : "%A %I:%M%p"
       
@@ -222,9 +223,9 @@ eos
         points = []
         point_dates = []
 
-        now_days = Time.now # use this get the right year, month and day
-        now_minutes = Time.at((Time.now.to_i/(60*range))*(60*range)).gmtime
-        now_floored = Time.local(now_days.year, now_days.month, now_days.day, 
+        now_days = tz.now # use this get the right year, month and day
+        now_minutes = tz.at((now_days.to_i/(60*range))*(60*range)).gmtime
+        now_floored = tz.local(now_days.year, now_days.month, now_days.day, 
             now_minutes.hour, now_minutes.min, now_minutes.sec)
 
         current = hits.length > 0 ? time_fn.call(hits[0]) : now_floored
