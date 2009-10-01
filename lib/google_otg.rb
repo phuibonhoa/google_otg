@@ -267,7 +267,7 @@ eos
         max_x_label_count = args.has_key?(:max_x_label_count) ? args[:max_x_label_count] : points.length
 
         if points.length > 0    
-            step = points.length / max_x_label_count
+            step = [points.length / max_x_label_count, 1].max
             idx = 0
             
             while idx < points.length
