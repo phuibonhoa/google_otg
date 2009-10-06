@@ -21,9 +21,15 @@ module GoogleOtg
         y_labels = [0]
         data = []
                 
+        args[:draw_gchart] = true
+        
         if hits[0].is_a?(Array)
             shape_markers = [['D','6699CC',0,'-1.0',4],['D','FF9933',1,'-1.0',2],['o','0000ff',0,'-1.0',8],['o','FF6600',1,'-1.0',8]]
             line_colors = ['6699CC','FF9933']
+
+            lower_bound_time = nil
+            hits.map{|series| lower_bound_time = series[0] if !lower_bound_time || series[0].created_at < lower_bound_time.created_at}
+            args[:lower_bound_time] = lower_bound_time if lower_bound_time 
             
             hits.map{|h|
                 converted = hits_to_gchart_range(h, args)            
@@ -271,6 +277,7 @@ eos
         max_y = args.has_key?(:max_y) ? (args[:max_y] > max_y ? args[:max_y] : max_y) : max_y
 
         top_y = self.flto10(max_y) + 10
+        top_y = max_y if top_y == 10 && args[:draw_gchart]
         mid_y = self.flto10(top_y / 2)        
         y_labels = y_label_fn.call(mid_y, top_y)
         ## end y axis labels ##
