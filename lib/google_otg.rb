@@ -21,8 +21,6 @@ module GoogleOtg
         y_labels = [0]
         data = []
                 
-        args[:draw_gchart] = true
-        
         if hits[0].is_a?(Array)
             shape_markers = [['D','6699CC',0,'-1.0',4],['D','FF9933',1,'-1.0',2],['o','0000ff',0,'-1.0',8],['o','FF6600',1,'-1.0',8]]
             line_colors = ['6699CC','FF9933']
@@ -61,6 +59,7 @@ module GoogleOtg
             :shape_markers => shape_markers,
             :data => data,
             :axis_with_labels => axis_with_labels,
+            :max_value => y_labels[y_labels.length - 1],
             :legend => legend,
             :axis_labels => axis_labels,
             :line_colors => line_colors)
@@ -277,7 +276,6 @@ eos
         max_y = args.has_key?(:max_y) ? (args[:max_y] > max_y ? args[:max_y] : max_y) : max_y
 
         top_y = self.flto10(max_y) + 10
-        top_y = max_y if top_y == 10 && args[:draw_gchart]
         mid_y = self.flto10(top_y / 2)        
         y_labels = y_label_fn.call(mid_y, top_y)
         ## end y axis labels ##
