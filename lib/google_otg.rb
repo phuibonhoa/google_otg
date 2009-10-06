@@ -66,6 +66,10 @@ module GoogleOtg
         src = args.has_key?(:src) ? args[:src] : "http://www.google.com/analytics/static/flash/OverTimeGraph.swf"
         
         if hits.is_a?(Array) and hits[0].is_a?(Array)
+            lower_bound_time = nil
+            hits.map{|series| lower_bound_time = series[0] if !lower_bound_time || series[0].created_at < lower_bound_time.created_at}
+            args[:lower_bound_time] = lower_bound_time if lower_bound_time 
+            
             range = hits.map{|h| hits_to_otg_range(h, args) }
         else
             range = [hits_to_otg_range(hits, args)]
@@ -232,7 +236,11 @@ eos
         now_floored = tz.local(now_days.year, now_days.month, now_days.day, 
             now_minutes.hour, now_minutes.min, now_minutes.sec)
 
-        current = hits.length > 0 ? time_fn.call(hits[0]) : now_floored
+        if args[:lower_bound_time]
+            current = time_fn.call(args[:lower_bound_time])
+        else
+            current = hits.length > 0 ? time_fn.call(hits[0]) : now_floored
+        end
 
         while (current < now_floored + range.minutes && range > 0) do
             if hits_dict[current]
