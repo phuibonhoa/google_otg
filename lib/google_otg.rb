@@ -22,7 +22,7 @@ module GoogleOtg
         data = []
                 
         if hits[0].is_a?(Array)
-            shape_markers = [['o','0000ff',0,'-1.0',6],['o','FF6600',1,'-1.0',6]]
+            shape_markers = [['D','6699CC',0,'-1.0',4],['D','FF9933',1,'-1.0',2],['o','0000ff',0,'-1.0',8],['o','FF6600',1,'-1.0',8]]
             line_colors = ['6699CC','FF9933']
             
             hits.map{|h|
@@ -33,8 +33,8 @@ module GoogleOtg
             }
             
         else
-            shape_markers = ['o','0000ff',0,'-1.0',6]
-            line_colors = '6699CC'            
+            shape_markers = [['D','6699CC',0,'-1.0',4],['o','0000ff',0,'-1.0',8]]
+            line_colors = ['6699CC']
 
             converted = hits_to_gchart_range(hits, args)            
             data.push(converted[:points])
@@ -65,7 +65,11 @@ module GoogleOtg
         height = args.has_key?(:height) ? args[:height] : 125
         src = args.has_key?(:src) ? args[:src] : "http://www.google.com/analytics/static/flash/OverTimeGraph.swf"
         
-        range = hits_to_otg_range(hits, args)
+        if hits.is_a?(Array) and hits[0].is_a?(Array)
+            range = hits.map{|h| hits_to_otg_range(h, args) }
+        else
+            range = [hits_to_otg_range(hits, args)]
+        end
         vars = range_to_flashvars(range)
         
         html = <<-eos
@@ -286,17 +290,50 @@ eos
     end
     protected :hits_to_range
     
+    
+    PRIMARY_STYLE = {
+                        :PointShape => "CIRCLE",
+                        :PointRadius => 9,
+                        :FillColor => 30668,
+                        :FillAlpha => 10,
+                        :LineThickness => 4,
+                        :ActiveColor => 30668,
+                        :InactiveColor => 11654895
+                    }
+                    
+    COMPARE_STYLE = {
+                        :PointShape => "CIRCLE",
+                        :PointRadius => 6,
+                        :FillAlpha => 10,
+                        :LineThickness => 2,
+                        :ActiveColor => 16750848,
+                        :InactiveColor => 16750848
+                    }
+                    
+    def setup_series(args, style)
+        raise ArgumentError unless args[:label]
+        raise ArgumentError unless args[:points]
+        raise ArgumentError unless args[:y_labels]
+        
+            return {
+                    :SelectionStartIndex => 0,
+                    :SelectionEndIndex => args[:points].length,
+                    :Style => style,
+                    :Label => args[:label],
+                    :Id => "primary",
+                    :YLabels => args[:y_labels],
+                    :ValueCategory => "visits",
+                    :Points => args[:points]
+                } # end graph
+    end
+    protected :setup_series
+    
     def range_to_flashvars(args = {})
-        x_labels = args[:x_labels]
-        y_labels = args[:y_labels]
-        label = args[:label]
-        points = args[:points]
-        
+        raise ArgumentError unless args.length > 0
+        x_labels = args[0][:x_labels]
         raise ArgumentError unless x_labels
-        raise ArgumentError unless y_labels
-        raise ArgumentError unless label
-        raise ArgumentError unless points
         
+        ct = 0
             # this is the structure necessary to support the Google Analytics OTG
 
             options = {:Graph => {
@@ -308,29 +345,12 @@ eos
             :XAxisLabels => x_labels,
             :HoverType => "primary_compare",
             :SelectedSeries => ["primary", "compare"],
-            :Series => [
-                {
-                    :SelectionStartIndex => 0,
-                    :SelectionEndIndex => points.length,
-                    :Style => 
-                    {
-                        :PointShape => "CIRCLE",
-                        :PointRadius => 9,
-                        :FillColor => 30668,
-                        :FillAlpha => 10,
-                        :LineThickness => 4,
-                        :ActiveColor => 30668,
-                        :InactiveColor => 11654895
-                    },
-                    :Label => label,
-                    :Id => "primary",
-                    :YLabels => y_labels,
-                    :ValueCategory => "visits",
-                    :Points => points
-                        }]        
+            :Series => args.map {|arg| 
+                        ct += 1
+                        setup_series(arg, ct == 1 ? PRIMARY_STYLE : COMPARE_STYLE) 
+                    }
                 } # end graph
             } # end options
-
         return URI::encode(options.to_json)
     end
     protected :range_to_flashvars
