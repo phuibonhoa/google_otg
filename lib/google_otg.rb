@@ -72,7 +72,7 @@ module GoogleOtg
         
         if hits.is_a?(Array) and hits[0].is_a?(Array)
             lower_bound_time = nil
-            hits.map{|series| lower_bound_time = series[0] if !lower_bound_time || series[0].created_at < lower_bound_time.created_at}
+            hits.map{|series| lower_bound_time = series[0] if !lower_bound_time || (series[0] && series[0].created_at < lower_bound_time.created_at)}
             args[:lower_bound_time] = lower_bound_time if lower_bound_time 
             
             range = hits.map{|h| hits_to_otg_range(h, args) }
