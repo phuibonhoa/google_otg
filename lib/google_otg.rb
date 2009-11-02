@@ -4,7 +4,7 @@ require 'uri'
 
 module GoogleOtg
 
-    DEFAULT_RANGE = 1 # 1 day
+    DEFAULT_INCREMENT = 1 # 1 day
 
     def google_line_graph(hits, args = {})
     
@@ -25,10 +25,6 @@ module GoogleOtg
             shape_markers = [['D','6699CC',0,'-1.0',4],['D','FF9933',1,'-1.0',2],['o','0000ff',0,'-1.0',8],['o','FF6600',1,'-1.0',8]]
             line_colors = ['6699CC','FF9933']
 
-            lower_bound_time = nil
-            hits.map{|series| lower_bound_time = series[0] if !lower_bound_time || series[0].created_at < lower_bound_time.created_at}
-            args[:lower_bound_time] = lower_bound_time if lower_bound_time 
-            
             hits.map{|h|
                 converted = hits_to_gchart_range(h, args)            
                 data.push(converted[:points])
@@ -71,16 +67,12 @@ module GoogleOtg
         src = args.has_key?(:src) ? args[:src] : "http://www.google.com/analytics/static/flash/OverTimeGraph.swf"
         
         if hits.is_a?(Array) and hits[0].is_a?(Array)
-            lower_bound_time = nil
-            hits.map{|series| lower_bound_time = series[0] if !lower_bound_time || (series[0] && series[0].created_at < lower_bound_time.created_at)}
-            args[:lower_bound_time] = lower_bound_time if lower_bound_time 
-            
             range = hits.map{|h| hits_to_otg_range(h, args) }
         else
             range = [hits_to_otg_range(hits, args)]
         end
         vars = range_to_flashvars(range)
-        
+
         html = <<-eos
 <embed width="100%" height="#{height}"
 wmode="opaque" salign="tl" scale="noScale" quality="high" bgcolor="#FFFFFF"
@@ -222,7 +214,8 @@ eos
         time_fn = args.has_key?(:time_fn) ? args[:time_fn] : lambda {|h| 
             return tz.local(h.created_at.year, h.created_at.month, h.created_at.day, h.created_at.hour, h.created_at.min, h.created_at.sec) # create zoned time
         }
-        range = args.has_key?(:range) ? args[:range] : DEFAULT_RANGE
+        increment = args.has_key?(:increment) ? args[:increment] : DEFAULT_INCREMENT
+        
         x_label_format = args.has_key?(:x_label_format) ? args[:x_label_format] : "%A %I:%M%p"
       
         max_y = 0
@@ -236,18 +229,22 @@ eos
         points = []
         point_dates = []
 
-        now_days = tz.now # use this get the right year, month and day
-        now_minutes = tz.at((now_days.to_i/(60*(range * 1440)))*(60*(range * 1440))).gmtime
-        now_floored = tz.local(now_days.year, now_days.month, now_days.day, 
-            now_minutes.hour, now_minutes.min, now_minutes.sec)
-
-        if args[:lower_bound_time]
-            current = time_fn.call(args[:lower_bound_time])
+        if args[:range] && args[:range][:lower_bound]
+            current = args[:range][:lower_bound]
         else
             current = hits.length > 0 ? time_fn.call(hits[0]) : now_floored
         end
+        
+        if args[:range] && args[:range][:upper_bound]
+            now_floored = args[:range][:upper_bound]
+        else
+            now_days = tz.now # use this get the right year, month and day
+            now_minutes = tz.at((now_days.to_i/(60*(increment * 1440)))*(60*(increment * 1440))).gmtime
+            now_floored = tz.local(now_days.year, now_days.month, now_days.day, 
+                now_minutes.hour, now_minutes.min, now_minutes.sec)
+        end
 
-        while (current < now_floored + range.days && range > 0) do
+        while (current < now_floored + increment.days && increment > 0) do
             if hits_dict[current]
                 count = hits_dict[current].count.to_i
                 max_y = count if count > max_y
@@ -268,10 +265,14 @@ eos
             end
             # Save the date for the x labels later
             point_dates.push({:key => date_key, :value => date_value})
-            current = current + range.days
-            break if points.length > 100 
+            current = current + increment.days
+            break if points.length > 365 # way too long dudes - no data fetching over 1 yr
         end
-
+        
+        if points.length > 100
+            points = points[points.length - 100..points.length - 1]
+        end
+        
         ## Setup Y axis labels ##
         max_y = args.has_key?(:max_y) ? (args[:max_y] > max_y ? args[:max_y] : max_y) : max_y
 
