@@ -4,7 +4,7 @@ require 'uri'
 
 module GoogleOtg
 
-    DEFAULT_RANGE = 30 # 30 min
+    DEFAULT_RANGE = 1 # 1 day
 
     def google_line_graph(hits, args = {})
     
@@ -237,7 +237,7 @@ eos
         point_dates = []
 
         now_days = tz.now # use this get the right year, month and day
-        now_minutes = tz.at((now_days.to_i/(60*range))*(60*range)).gmtime
+        now_minutes = tz.at((now_days.to_i/(60*(range * 1440)))*(60*(range * 1440))).gmtime
         now_floored = tz.local(now_days.year, now_days.month, now_days.day, 
             now_minutes.hour, now_minutes.min, now_minutes.sec)
 
@@ -247,7 +247,7 @@ eos
             current = hits.length > 0 ? time_fn.call(hits[0]) : now_floored
         end
 
-        while (current < now_floored + range.minutes && range > 0) do
+        while (current < now_floored + range.days && range > 0) do
             if hits_dict[current]
                 count = hits_dict[current].count.to_i
                 max_y = count if count > max_y
@@ -268,7 +268,7 @@ eos
             end
             # Save the date for the x labels later
             point_dates.push({:key => date_key, :value => date_value})
-            current = current + range.minutes
+            current = current + range.days
             break if points.length > 100 
         end
 
