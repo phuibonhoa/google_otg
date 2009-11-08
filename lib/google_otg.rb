@@ -1,6 +1,7 @@
 $:.unshift(File.dirname(__FILE__))
 require 'gchart_mod'
 require 'uri'
+require 'fastercsv'
 
 module GoogleOtg
 
@@ -60,6 +61,33 @@ module GoogleOtg
             :axis_labels => axis_labels,
             :line_colors => line_colors)
                 
+    end
+    
+    def data_to_csv(hits, args={})
+        if hits.is_a?(Array) and hits[0].is_a?(Array)
+            range = hits.map{|h| hits_to_otg_range(h, args) }
+        else
+            range = [hits_to_otg_range(hits, args)]
+        end
+    
+        legend = []
+        legend.concat(args[:legend])
+        
+        csv_data = FasterCSV.generate do |csv|
+            x_labels = range[0][:x_labels].map{|x_label| x_label[1]}
+            x_labels.unshift("")
+            csv << x_labels
+            
+            raise ArgumentError, "Mismatched array lengths" unless range.length == args[:legend].length
+            
+            for data in range
+                points = data[:points].map{|point| point[:Value][0]}
+                points.unshift(legend.shift)
+                csv << points
+            end
+        end
+
+        return csv_data        
     end
     
     def over_time_graph(hits, args = {})
