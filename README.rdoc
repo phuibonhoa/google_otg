@@ -17,20 +17,30 @@ You must be able to generate arrays of objects that respond to "count" and "crea
 In your controller:
 
  @hits_last_week = Hits.find_by_sql(["
-    SELECT 
-        DAYOFYEAR(hits.created_at) as d, 
-        DATE(hits.created_at) as created_at, 
-        count(*) as count
-    FROM hits
-    WHERE hits.created_at > UTC_TIMESTAMP() - INTERVAL 7 DAY
-    GROUP BY d
-    ORDER BY created_at"])
+        SELECT DAYOFYEAR(TIMESTAMPADD(SECOND, ?, created_at)) as d, 
+            DATE(TIMESTAMPADD(SECOND, ?, created_at)) as created_at, 
+            count(*) as count
+        FROM hits
+        WHERE widget_id = ?
+
+        AND created_at >= TIMESTAMPADD(SECOND, -1 * ?, DATE(?))
+        AND created_at <= TIMESTAMPADD(SECOND, -1 * ?, DATE(?)) + INTERVAL 1 DAY
+
+        GROUP BY d
+        ORDER BY created_at  
+    ", utc_offset_in_sec, utc_offset_in_sec, widget.id, utc_offset_in_sec, lower_bound, utc_offset_in_sec, upper_bound])
 
 In your view:
 
   <%= over_time_graph(@hits_last_week) %>
   or
-  <%= over_time_graph(@hits_last_week, :label => "Hits", :range => 1440, :x_label_format => "%A, %B %d", :src => "/google/OverTimeGraph.swf") %>
+  <%= over_time_graph(@impressions, 
+        :x_label_format => "%A, %B %d", 
+        :max_x_label_count => 3,
+        :time_zone => @time_zone,
+        :range => @range,
+        :src => "/google/OverTimeGraph.swf") %>
+
 
 == +over_time_graph+
 
