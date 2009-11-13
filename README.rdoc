@@ -33,8 +33,10 @@ In your controller:
 In your view:
 
   <%= over_time_graph(@hits_last_week) %>
-  or
-  <%= over_time_graph(@impressions, 
+
+or
+
+  <%= over_time_graph(@hits_last_week, 
         :x_label_format => "%A, %B %d", 
         :max_x_label_count => 3,
         :time_zone => @time_zone,
@@ -55,8 +57,6 @@ Some of the options available:
 
 Example:
 
-Some of the options available:
-
     google_line_graph(
         [@impressions, @conversions],
         :x_label_format => "%a, %b %d", 
@@ -64,6 +64,8 @@ Some of the options available:
         :range => 1440,
         :title => @company_name,
         :legend => ['Impressions','Conversions'])
+
+Some of the options available:
 
 <tt>:title</tt>::               The title of this graph
 <tt>:legend</tt>::              The graph legend
