@@ -8,7 +8,7 @@ Git::       http://github.com/esilverberg/google_otg/tree/master
 This plugin adds helpers to include Google's pretty over time line graph in your rails application. You will
 recognize this line graph from Google Analytics. 
 
-Many features are missing, including support for multiple lines and colors. Feel free to add.
+You can also download images via integration with the Google chart API as well as download CSV
 
 == Requirements
 You must be able to generate arrays of objects that respond to "count" and "created_at". The X-axis is presumed to be dates. You can control time step of the x-axis. 
@@ -72,6 +72,22 @@ Some of the options available:
 <tt>:title_color</tt>::         The title color
 <tt>:title_size</tt>::          Title font size
 <tt>:grid_lines</tt>::          Grid lines on the graph
+
+== +data_to_csv+
+
+data_to_csv([@impressions, @conversions], 
+            :legend => ['Impressions','Conversions'],
+            :x_label_format => "%m/%d/%Y", 
+            :time_zone => ActiveSupport::TimeZone['Hawaii'],
+            :range => {:lower_bound => 1.day.ago, :upper_bound => 1.day.fromnow}) 
+
+Some of the options available:
+
+<tt>:legend</tt>::              Column headers
+<tt>:time_zone</tt>::           Time zone of data
+<tt>:range</tt>::               Lower & upper bound
+<tt>:x_label_format</tt>::      Format string for x-axis data
+
 
 == Copyright
 
