@@ -75,7 +75,7 @@ Some of the options available:
 
 == +data_to_csv+
 
-data_to_csv([@impressions, @conversions], 
+    data_to_csv([@impressions, @conversions], 
             :legend => ['Impressions','Conversions'],
             :x_label_format => "%m/%d/%Y", 
             :time_zone => ActiveSupport::TimeZone['Hawaii'],
