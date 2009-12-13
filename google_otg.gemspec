@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{google_otg}
-  s.version = "1.0.19"
+  s.version = "1.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["esilverberg"]
-  s.date = %q{2009-12-08}
+  s.date = %q{2009-12-13}
   s.description = %q{Include Google's Over Time Graph in your app}
   s.email = %q{eric@ericsilverberg.com}
   s.extra_rdoc_files = [
@@ -48,14 +48,17 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<thoughtbot-shoulda>, [">= 0"])
       s.add_runtime_dependency(%q<mattetti-googlecharts>, [">= 0"])
       s.add_runtime_dependency(%q<fastercsv>, [">= 0"])
+      s.add_runtime_dependency(%q<httparty>, [">= 0"])
     else
       s.add_dependency(%q<thoughtbot-shoulda>, [">= 0"])
       s.add_dependency(%q<mattetti-googlecharts>, [">= 0"])
       s.add_dependency(%q<fastercsv>, [">= 0"])
+      s.add_dependency(%q<httparty>, [">= 0"])
     end
   else
     s.add_dependency(%q<thoughtbot-shoulda>, [">= 0"])
     s.add_dependency(%q<mattetti-googlecharts>, [">= 0"])
     s.add_dependency(%q<fastercsv>, [">= 0"])
+    s.add_dependency(%q<httparty>, [">= 0"])
   end
 end
