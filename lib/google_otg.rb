@@ -8,7 +8,6 @@ module GoogleOtg
     include HTTParty            
     @@DEFAULT_INCREMENT = 1 # 1 day
 
-      module Helper
         def date_range
           tr = self.setup_time_range
           tr[:lower_bound].strftime("%m/%d/%Y") + " - " + tr[:upper_bound].strftime("%m/%d/%Y")
@@ -40,7 +39,6 @@ module GoogleOtg
             return html
 
         end      
-      end
 
         def over_time_graph_download(results, type, title, legend)
           tr = self.setup_time_range
@@ -517,4 +515,3 @@ module GoogleOtg
             return URI::encode(options.to_json)
         end
   end
-
