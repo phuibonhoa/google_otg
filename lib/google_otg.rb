@@ -217,7 +217,7 @@ module GoogleOtg
 
         # override this if you have a better way of retrieving time zones
         def get_time_zone
-          return defined?(current_user) && !current_user.nil? && current_user.responds_to?(:time_zone) ? current_user.time_zone : ActiveSupport::TimeZone["UTC"]
+          return defined?(current_user) && !current_user.nil? && current_user.respond_to?(:time_zone) ? current_user.time_zone : ActiveSupport::TimeZone["UTC"]
         end
 
         def setup_time_range()
