@@ -326,8 +326,8 @@ module GoogleOtg
         end
 
         def hits_to_otg_range(hits, args = {})
-            return hits_to_range(hits, lambda {|count, date_key, date_value| 
-                {:Value => [count, count], :Label => [date_key, date_value]}
+            return hits_to_range(hits, lambda {|count, count_label, date_key, date_value| 
+                {:Value => [count, count_label], :Label => [date_key, date_value]}
             }, lambda{|mid, top| 
                 [[mid,mid],[top,top]]
             }, lambda{|hit, hit_date_key, hit_date_value|
@@ -393,14 +393,22 @@ module GoogleOtg
 
             while (current < now_floored + increment.days && increment > 0) do
                 if hits_dict[current]
-                    count = hits_dict[current].count.to_i
+                    count = hits_dict[current].count
+                    count_label = count
+                    if count.class == Float
+                      count = count.round(2) 
+                      count_label = '$%.2f' % count
+                    else
+                      count = count.to_i 
+                      count_label = count
+                    end
                     max_y = count if count > max_y
 
                     date = time_fn.call(hits_dict[current])
                     date_key = date.to_i
                     date_value = date.strftime(x_label_format)
 
-                    points.push(points_fn.call(count, date_key, date_value))
+                    points.push(points_fn.call(count, count_label, date_key, date_value))
                     total += count
                 else
 
@@ -408,7 +416,7 @@ module GoogleOtg
                     date_key = date.to_i
                     date_value = date.strftime(x_label_format)
 
-                    points.push(points_fn.call(0, date_key, date_value))
+                    points.push(points_fn.call(0, 0, date_key, date_value))
                 end
                 # Save the date for the x labels later
                 point_dates.push({:key => date_key, :value => date_value})
